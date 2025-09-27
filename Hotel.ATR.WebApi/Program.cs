@@ -1,3 +1,5 @@
+using Hotel.ATR.WebApi;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +18,13 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+string connString = builder.Configuration
+    .GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<AppDbContex>(options =>
+options.UseSqlServer(connString));
+
 
 
 var app = builder.Build();

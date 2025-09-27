@@ -11,12 +11,14 @@ namespace Hotel.ATR.WebApi.Controllers
     [ApiController]
     public class TeamController : ControllerBase
     {
+        private readonly AppDbContex _db;
         private readonly ILogger<TeamController> _logger;
 
         public static List<Team> teams = new List<Team>();
-        public TeamController(ILogger<TeamController> logger)
+        public TeamController(ILogger<TeamController> logger, AppDbContex db)
         {
             _logger = logger;
+            _db = db;
 
             teams.Add(new Team("Kathy Luis", "", "Lorem ipsupm dolor sit amet", "Officer"));
             teams.Add(new Team("Them Jonse", "", "Lorem ipsupm dolor sit amet", "Manager"));
@@ -29,6 +31,10 @@ namespace Hotel.ATR.WebApi.Controllers
         [Route("/get-all-teams")]
         public IEnumerable<Team> GetAllItems()
         {
+            var data = _db.Teams;
+            
+
+
             _logger.LogWarning("USER TRY TO GET DATA");
             return teams;
         }
