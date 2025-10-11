@@ -1,63 +1,103 @@
-﻿using Hotel.ATR.WebApi.Model;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿
+using Hotel.ATR.WebApi.Interfaces;
+using Hotel.ATR.WebApi.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+
 
 namespace Hotel.ATR.WebApi.Controllers
 {
     //[Route("api/[controller]")]
     [Route("api/team")]
     [ApiController]
+   
     public class TeamController : ControllerBase
     {
-        private readonly AppDbContex _db;
         private readonly ILogger<TeamController> _logger;
+        private readonly IRepository _db;
+        private ReturnResult result;
 
         public static List<Team> teams = new List<Team>();
-        public TeamController(ILogger<TeamController> logger, AppDbContex db)
+        public TeamController(ILogger<TeamController> logger, IRepository db)
         {
             _logger = logger;
             _db = db;
-
-            teams.Add(new Team("Kathy Luis", "", "Lorem ipsupm dolor sit amet", "Officer"));
-            teams.Add(new Team("Them Jonse", "", "Lorem ipsupm dolor sit amet", "Manager"));
-            teams.Add(new Team("Marry Gomej", "", "Lorem ipsupm dolor sit amet", "Leader"));
-            teams.Add(new Team("Noah Jackson", "", "Lorem ipsupm dolor sit amet", "Officer"));
+            result = new ReturnResult();
         }
 
         [HttpGet]
         [Route("[action]")]
         [Route("/get-all-teams")]
-        public IEnumerable<Team> GetAllItems()
+        [Authorize]
+        public async Task<ReturnResult> GetTeams()
         {
-            var data = _db.Teams;
-            
+            try
+            {
+                result.IsSuccess = true;
+                result.StatusCode = HttpStatusCode.OK;
+                result.Result = await _db.GetAllAsync<Team>();
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.StatusCode = HttpStatusCode.NotFound;
 
+                result.ErrorMessag = new List<string>(){ ex.Message };
+                if(ex.InnerException!=null)
+                    result.ErrorMessag.Add(ex.Message);
+            }
+           
+            return result;
+        }
 
-            _logger.LogWarning("USER TRY TO GET DATA");
-            return teams;
+        [HttpGet(Name = "GetTeam")]
+        public async Task<ReturnResult> GetTeam(int id)
+        {
+            try
+            {
+                result.IsSuccess = true;
+                result.StatusCode = HttpStatusCode.OK;
+                result.Result = await _db.GetAsync<Team>(t=>t.Id == id);
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.StatusCode = HttpStatusCode.NotFound;
+
+                result.ErrorMessag = new List<string>() { ex.Message };
+                if (ex.InnerException != null)
+                    result.ErrorMessag.Add(ex.Message);
+            }
+
+            return result;
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Post([FromForm] Team team)
+        public ReturnResult Post([FromForm] Team team)
         {
-            if (team == null)
-                //return BadRequest();
-                //return BadRequest("Отсутствуют данные!");
-                return BadRequest(new { ErrorMessage = "Отсутствуют данные!", IsError=true });
 
-            try
-            {
-                teams.Add (team);
-                return Ok(new { ErrorMessage = "Данные успешно добавлены!", IsError = false });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { ErrorMessage = ex.Message, IsError = true });
-            }            
+            return null;
+            //if (team == null)
+            //    //return BadRequest();
+            //    //return BadRequest("Отсутствуют данные!");
+            //    return BadRequest(new { ErrorMessage = "Отсутствуют данные!", IsError = true });
+
+            //try
+            //{
+            //    teams.Add(team);
+            //    _returnResult.StatusCode = HttpStatusCode.Created;
+
+            //    return CreatedAtRoute("GetTeam", new ) Ok(new { ErrorMessage = "Данные успешно добавлены!", IsError = false });
+            //}
+            //catch (Exception ex)
+            //{
+            //    _returnResult.StatusCode = HttpStatusCode.BadRequest;
+            //    return BadRequest(new { ErrorMessage = ex.Message, IsError = true });
+            //}
         }
 
 
@@ -65,56 +105,72 @@ namespace Hotel.ATR.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Delete(string fullName)
+        public ReturnResult Delete(int id)
         {
-            if (string.IsNullOrWhiteSpace(fullName))
-                return BadRequest(new { ErrorMessage = "FullName указан не корректно", IsError = true });
-
-            var data = teams.FirstOrDefault(f => f.FullName.Equals(fullName));
-
-            if(data!=null)
+            if (id <= 0)
             {
-                teams.Remove(data);
-                return Ok(new { ErrorMessage = "Данные удалены", IsError = false });
+                result.IsSuccess = false;
+                result.StatusCode = HttpStatusCode.BadRequest;
+                result.ErrorMessag = new List<string>() { "Id указан не корректно" };
+                return result;
             }
-            else
-            {
-                return NotFound(new { ErrorMessage = "Данные не найдены", IsError = true });
-            }
-            
-        }
 
-        [HttpPut]
-        public IActionResult Put([FromBody] Team team)
-        {
-            var data = teams.FirstOrDefault(f => f.FullName.Equals(team.FullName));
+            var data = teams.FirstOrDefault(f => f.Id== id);
 
             if (data != null)
             {
-                data.FullName = team.FullName;
+                teams.Remove(data);
+                result.IsSuccess = true;
+                result.StatusCode = HttpStatusCode.OK;               
+            }
+            else
+            {
+                result.IsSuccess = false;
+                result.StatusCode = HttpStatusCode.NotFound;
+                result.ErrorMessag = new List<string>() { "Данные не найдены" };
+            }
+            return result;
+        }
+
+        [HttpPut]
+        public ReturnResult Put([FromBody] Team team, int Id)
+        {
+            var data = teams.FirstOrDefault(f => f.Id == Id);
+
+            if (data != null)
+            {
                 data.PositionName = team.PositionName;
                 data.PathImage = team.PathImage;
                 data.Description = team.Description;
 
-                return Ok(new { ErrorMessage = "Данные обновлены", IsError = false });
+                result.IsSuccess = true;
+                result.StatusCode = HttpStatusCode.OK;
             }
             else
             {
-                return NotFound(new { ErrorMessage = "Данные не найдены", IsError = true });
+                result.IsSuccess = false;
+                result.StatusCode = HttpStatusCode.NotFound;
             }
+            return result;
         }
 
         [HttpPatch]
-        public IActionResult Patch(string fullName, [FromBody] JsonPatchDocument<Team> jsonPatch)
+        public ReturnResult Patch(int Id, [FromBody] JsonPatchDocument<Team> jsonPatch)
         {
-            var res = teams.FirstOrDefault(f => f.FullName.Equals(fullName));
+            var res = teams.FirstOrDefault(f => f.Id == Id);
             if (res != null)
             {
                 jsonPatch.ApplyTo(res);
-                return Ok();
-            }
-            return NotFound();
-        }
 
+                result.IsSuccess = true;
+                result.StatusCode = HttpStatusCode.OK;
+            }
+            else
+            {
+                result.IsSuccess = false;
+                result.StatusCode = HttpStatusCode.NotFound;
+            }
+            return result;
+        }
     }
 }

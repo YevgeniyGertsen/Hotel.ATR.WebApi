@@ -1,6 +1,10 @@
 using Hotel.ATR.WebApi;
+using Hotel.ATR.WebApi.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +29,31 @@ string connString = builder.Configuration
 builder.Services.AddDbContext<AppDbContex>(options =>
 options.UseSqlServer(connString));
 
+builder.Services.AddScoped<IRepository, Repository>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(options =>
+    {
+        options.SaveToken = true;
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidAudience = "http://ok.kz",
+            ValidIssuer = "http://ok.kz",
+            ClockSkew = TimeSpan.Zero,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes("MySuperDuperMegaSecretKey_2025_Token!"))
+        };
+    });
+
+
 
 
 var app = builder.Build();
@@ -41,3 +70,18 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
+string? httpClientName = builder.Configuration["TodoHttpClientName"];
+ArgumentException.ThrowIfNullOrEmpty(httpClientName);
+
+builder.Services.AddHttpClient(
+    httpClientName,
+    client =>
+    {
+        // Set the base address of the named client.
+        client.BaseAddress = new Uri("https://jsonplaceholder.typicode.com/");
+
+        // Add a user-agent default request header.
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("dotnet-docs");
+    });

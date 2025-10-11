@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34723.18
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hotel.ATR.WebApi", "Hotel.ATR.WebApi\Hotel.ATR.WebApi.csproj", "{7C113043-A2CD-4CAB-ACCB-83F45B5038FE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hotel.ATR.WebApi", "Hotel.ATR.WebApi\Hotel.ATR.WebApi.csproj", "{7C113043-A2CD-4CAB-ACCB-83F45B5038FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hotel.Atr.Web", "Hotel.Atr.Web\Hotel.Atr.Web.csproj", "{925F86D6-BDCE-493F-A16D-E6940965C10B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{7C113043-A2CD-4CAB-ACCB-83F45B5038FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C113043-A2CD-4CAB-ACCB-83F45B5038FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C113043-A2CD-4CAB-ACCB-83F45B5038FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{925F86D6-BDCE-493F-A16D-E6940965C10B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{925F86D6-BDCE-493F-A16D-E6940965C10B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{925F86D6-BDCE-493F-A16D-E6940965C10B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{925F86D6-BDCE-493F-A16D-E6940965C10B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
